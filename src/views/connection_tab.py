@@ -453,8 +453,14 @@ class ConnectionTab(QWidget):
         self.output_rate_spinbox.setValue(self.controller.config.output_rate)
         self.output_rate_spinbox.setSuffix(" Hz")
         self.output_rate_spinbox.setToolTip("Data output rate (1-10 Hz)")
-        self.output_rate_spinbox.valueChanged.connect(self._on_output_rate_changed)
         rate_layout.addWidget(self.output_rate_spinbox)
+        
+        # Apply button to send output rate command
+        self.apply_rate_button = QPushButton("Apply to All Sensors")
+        self.apply_rate_button.setToolTip("Send output rate command to all connected JSON sensors")
+        self.apply_rate_button.clicked.connect(self._on_apply_output_rate)
+        rate_layout.addWidget(self.apply_rate_button)
+        
         rate_layout.addStretch()
         
         layout.addWidget(rate_group)
@@ -476,24 +482,29 @@ class ConnectionTab(QWidget):
         layout.addWidget(panels_group)
         layout.addStretch()
     
-    @pyqtSlot(int)
-    def _on_output_rate_changed(self, value: int):
+    @pyqtSlot()
+    def _on_apply_output_rate(self):
         """
-        Handle output rate change
-        
-        Args:
-            value: New output rate in Hz
+        Handle Apply button click - send output rate command to all connected sensors
         """
         try:
+            value = self.output_rate_spinbox.value()
+            
             if not Validators.validate_output_rate(value):
                 logger.warning(f"Invalid output rate: {value}")
+                QMessageBox.warning(self, "Invalid Rate", f"Output rate must be between 1-10 Hz")
                 return
             
-            logger.info(f"Output rate changed to {value} Hz")
+            logger.info(f"Applying output rate {value} Hz to all connected sensors")
             
             # Update config
             self.controller.config.output_rate = value
             self.controller.save_config()
+            
+            # Count successful and failed sends
+            success_count = 0
+            failed_count = 0
+            skipped_count = 0
             
             # Send outputrate command to all connected JSON protocol sensors
             for sensor_id, panel in self.sensor_panels.items():
@@ -509,12 +520,30 @@ class ConnectionTab(QWidget):
                                 success = sensor_controller.worker.send_command(command)
                                 if success:
                                     logger.info(f"Output rate command sent to {sensor_id}: {value} Hz")
+                                    success_count += 1
                                 else:
                                     logger.warning(f"Failed to send output rate command to {sensor_id}")
+                                    failed_count += 1
                             else:
-                                logger.debug(f"{sensor_id} does not support JSON protocol, skipping output rate change")
+                                logger.debug(f"{sensor_id} does not support JSON protocol, skipping")
+                                skipped_count += 1
                         else:
-                            logger.debug(f"{sensor_id} sensor info not available yet, skipping output rate change")
+                            logger.debug(f"{sensor_id} sensor info not available yet, skipping")
+                            skipped_count += 1
+            
+            # Show result message
+            if success_count > 0:
+                msg = f"Output rate applied to {success_count} sensor(s)"
+                if failed_count > 0:
+                    msg += f"\nFailed: {failed_count} sensor(s)"
+                if skipped_count > 0:
+                    msg += f"\nSkipped: {skipped_count} sensor(s) (not connected or no JSON support)"
+                QMessageBox.information(self, "Output Rate Applied", msg)
+            elif failed_count > 0:
+                QMessageBox.warning(self, "Failed", f"Failed to apply output rate to {failed_count} sensor(s)")
+            else:
+                QMessageBox.information(self, "No Action", "No connected JSON sensors to apply output rate")
             
         except Exception as e:
-            logger.error(f"Failed to update output rate: {e}", exc_info=True)
+            logger.error(f"Failed to apply output rate: {e}", exc_info=True)
+            QMessageBox.critical(self, "Error", f"Failed to apply output rate:\n{e}")
