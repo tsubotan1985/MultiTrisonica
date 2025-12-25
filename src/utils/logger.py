@@ -58,12 +58,13 @@ class AppLogger:
         console_handler.setFormatter(console_formatter)
         root_logger.addHandler(console_handler)
         
-        # Rotating file handler (10MB max, 5 backups)
+        # Rotating file handler (100MB max, 20 backups = 2GB total)
+        # Supports long-term measurements (multiple hours)
         log_file = cls._log_dir / "multitrisonica.log"
         file_handler = logging.handlers.RotatingFileHandler(
             filename=log_file,
-            maxBytes=10 * 1024 * 1024,  # 10 MB
-            backupCount=5,
+            maxBytes=100 * 1024 * 1024,  # 100 MB per file
+            backupCount=20,  # Keep 20 backup files (total ~2GB)
             encoding='utf-8'
         )
         file_handler.setLevel(logging.DEBUG)  # File gets all messages
@@ -74,8 +75,8 @@ class AppLogger:
         crash_log = cls._log_dir / "crash.log"
         crash_handler = logging.handlers.RotatingFileHandler(
             filename=crash_log,
-            maxBytes=5 * 1024 * 1024,  # 5 MB
-            backupCount=3,
+            maxBytes=50 * 1024 * 1024,  # 50 MB per file
+            backupCount=10,  # Keep 10 backup files (total ~500MB)
             encoding='utf-8'
         )
         crash_handler.setLevel(logging.ERROR)
