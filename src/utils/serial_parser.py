@@ -32,12 +32,14 @@ class SerialParser:
         'V': 'V component (m/s)',
         'W': 'W component (m/s)',
         'T': 'Sonic temperature (°C)',
+        'H': 'Humidity (%)',
         'PI': 'Pitch (degrees)',
         'RO': 'Roll (degrees)'
     }
     
     # Required tags for valid data packet
-    REQUIRED_TAGS = ['S', 'D', 'U', 'V', 'W', 'T']
+    # Note: T (temperature) is optional as some sensors don't include it
+    REQUIRED_TAGS = ['S', 'D', 'U', 'V', 'W']
     
     # Known error values from sensor
     ERROR_VALUES = [-99.9, -99.99]

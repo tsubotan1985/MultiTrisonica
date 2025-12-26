@@ -77,9 +77,10 @@ class SensorData:
         u_component = parsed['U']
         v_component = parsed['V']
         w_component = parsed['W']
-        temperature = parsed['T']
         
         # Extract optional fields with defaults
+        # Temperature may not have a tag on some sensors
+        temperature = parsed.get('T', 0.0)
         pitch = parsed.get('PI', 0.0)
         roll = parsed.get('RO', 0.0)
         

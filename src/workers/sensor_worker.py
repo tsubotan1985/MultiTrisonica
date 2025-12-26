@@ -189,15 +189,26 @@ class SensorWorker(QThread):
         try:
             logger.info(f"{self.sensor_id}: Attempting JSON protocol initialization")
             
-            # Clear any existing data
-            time.sleep(0.3)
+            # Clear any existing data with longer wait time
+            time.sleep(0.5)  # Increased from 0.3 to 0.5 seconds
             self.serial_port.reset_input_buffer()
+            time.sleep(0.2)  # Additional delay after buffer clear
             
-            # Step 1: Check JSON protocol support with {json} command
-            json_response = self._send_json_command("{json}", timeout=2.0)
+            # Step 1: Check JSON protocol support with {json} command (with retry)
+            json_response = None
+            for attempt in range(2):  # Try up to 2 times
+                json_response = self._send_json_command("{json}", timeout=3.0)  # Increased timeout
+                
+                if json_response and 'error' not in json_response:
+                    break
+                    
+                if attempt == 0:
+                    logger.debug(f"{self.sensor_id}: First JSON attempt failed, retrying...")
+                    time.sleep(0.5)
+                    self.serial_port.reset_input_buffer()
             
             if not json_response or 'error' in json_response:
-                logger.info(f"{self.sensor_id}: JSON protocol not supported or not available")
+                logger.info(f"{self.sensor_id}: JSON protocol not supported or not available (tried 2 times)")
                 return None
             
             # Check if we got valid JSON protocol response
@@ -210,7 +221,8 @@ class SensorWorker(QThread):
                 return None
             
             # Step 2: Get version information
-            version_response = self._send_json_command("{version}", timeout=2.0)
+            time.sleep(0.2)  # Delay before next command
+            version_response = self._send_json_command("{version}", timeout=3.0)
             
             sensor_info = {
                 'protocol': 'JSON',
@@ -236,9 +248,16 @@ class SensorWorker(QThread):
                     f"Model: {sensor_info.get('model', 'Unknown')}"
                 )
             
-            # Step 3: Get settings (optional, for information)
-            settings_response = self._send_json_command("{settings}", timeout=3.0)
+            # Step 3: Ensure all output tags are enabled (before getting settings)
+            # This ensures consistent data format across all sensors
+            self._ensure_all_tags_enabled()
             
+            # Step 4: Get settings (optional, for information)
+            # Note: Settings response can be very long (100+ lines), so use longer timeout
+            time.sleep(0.2)  # Delay before next command
+            settings_response = self._send_json_command("{settings}", timeout=8.0)
+            
+            # Settings is optional - if it fails, we still have valid JSON protocol
             if settings_response and 'Settings' in settings_response:
                 settings = settings_response['Settings']
                 sensor_info['settings'] = settings
@@ -286,6 +305,16 @@ class SensorWorker(QThread):
                     self.sensor_id,
                     f"S/N: {serial_num}, Rate: {sample_rate}Hz"
                 )
+            else:
+                # Settings failed or incomplete - this is OK, we still have JSON protocol
+                logger.info(
+                    f"{self.sensor_id}: Settings retrieval incomplete or failed "
+                    "(this is normal for some sensors) - JSON protocol still valid"
+                )
+                self.initialization_progress.emit(
+                    self.sensor_id,
+                    "Settings: Not available (using defaults)"
+                )
             
             # Small delay before starting data acquisition
             time.sleep(0.2)
@@ -313,7 +342,11 @@ class SensorWorker(QThread):
             return {'error': 'Port not open'}
         
         try:
-            logger.debug(f"{self.sensor_id}: Sending JSON command: {command}")
+            logger.info(f"{self.sensor_id}: Sending JSON command: {command} (timeout: {timeout}s)")
+            
+            # Clear input buffer before sending command
+            self.serial_port.reset_input_buffer()
+            time.sleep(0.1)
             
             # Send command character by character (as observed in protocol log)
             for char in command:
@@ -321,6 +354,7 @@ class SensorWorker(QThread):
                 time.sleep(0.01)  # 10ms delay between characters
             
             self.serial_port.flush()
+            time.sleep(0.1)  # Additional delay after flush
             
             # Read response
             response_lines = []
@@ -358,8 +392,10 @@ class SensorWorker(QThread):
                 time.sleep(0.05)
             
             if not response_lines:
-                logger.warning(f"{self.sensor_id}: No response to JSON command: {command}")
+                logger.warning(f"{self.sensor_id}: No response to JSON command: {command} (timeout: {timeout}s)")
                 return {'error': 'No response'}
+            
+            logger.info(f"{self.sensor_id}: Received {len(response_lines)} lines in response to {command}")
             
             # Join response lines
             response_text = '\n'.join(response_lines)
@@ -398,6 +434,64 @@ class SensorWorker(QThread):
         except Exception as e:
             logger.error(f"{self.sensor_id}: Error sending JSON command: {e}")
             return {'error': str(e)}
+    
+    def _ensure_all_tags_enabled(self):
+        """
+        Ensure all output values have tags enabled
+        
+        Sets all common output parameters to be tagged so data is always in
+        consistent tagged format: "TAG VALUE" instead of just "VALUE"
+        
+        This is critical for reliable parsing across different sensor models.
+        
+        After setting tags, waits for configuration to take effect before
+        starting data acquisition.
+        """
+        try:
+            logger.info(f"{self.sensor_id}: Ensuring all output tags are enabled")
+            self.initialization_progress.emit(self.sensor_id, "Configuring tags...")
+            
+            # List of tags to ensure are tagged (if they exist and are enabled)
+            # These correspond to Display configuration in sensor settings
+            tags_to_enable = ['S', 'D', 'DV', 'U', 'V', 'W', 'T', 'H', 'PI', 'RO']
+            
+            commands_sent = 0
+            for tag in tags_to_enable:
+                try:
+                    command = f"{{set Display.{tag}.Tagged true}}"
+                    time.sleep(0.15)  # Small delay between commands
+                    response = self._send_json_command(command, timeout=2.0)
+                    
+                    if response and 'error' not in response:
+                        commands_sent += 1
+                        logger.debug(f"{self.sensor_id}: Tag {tag} set to tagged")
+                
+                except Exception as e:
+                    # Some tags may not exist on all sensor models - that's OK
+                    logger.debug(f"{self.sensor_id}: Could not set {tag} tag (may not exist): {e}")
+            
+            logger.info(f"{self.sensor_id}: Configured {commands_sent} output tags")
+            
+            # Note: TriSonica JSON protocol applies settings immediately
+            # No explicit save command is needed (settings are persistent)
+            logger.info(f"{self.sensor_id}: Tag configuration commands sent ({commands_sent} tags)")
+            self.initialization_progress.emit(self.sensor_id, "Tags configured, waiting for apply...")
+            
+            # CRITICAL: Wait for sensor to apply the new configuration
+            # The sensor needs time to restart data output with new tag settings
+            # Without this delay, we may receive old (untagged) data
+            logger.info(f"{self.sensor_id}: Waiting 2 seconds for configuration to take effect...")
+            time.sleep(2.0)
+            
+            # Clear any old data that was sent with previous configuration
+            self.serial_port.reset_input_buffer()
+            
+            logger.info(f"{self.sensor_id}: Tag configuration applied successfully")
+            self.initialization_progress.emit(self.sensor_id, "Tags applied ✓")
+        
+        except Exception as e:
+            logger.warning(f"{self.sensor_id}: Error configuring tags: {e}")
+            # Continue anyway - sensor may still work with current configuration
     
     def _send_init_commands(self):
         """

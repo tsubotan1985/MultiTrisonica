@@ -1,0 +1,296 @@
+{
+{
+"Settings" :
+{
+"Model" : "TriSonica Mini Pipe Mount",
+"Version" : "3.0.0",
+"Serial Number" : "P001144",
+"MenuMode" : "User",
+"Factory Settings" : "Valid",
+"Display" :
+{
+"DataFormat" : "ASCII",
+"TagDelim" : " ",
+"ParamDelim" : " ",
+"IDTag" :
+{
+"Description" : "ID Tag",
+"Enabled" : false,
+"Tagged" : true,
+"Tag String" : "",
+"Decimals" : 0,
+"Units" : 1
+},
+"S" :
+{
+"Description" : "Wind Speed 3D",
+"Enabled" : true,
+"Tagged" : true,
+"Tag String" : "S",
+"Decimals" : 2,
+"Units" : 3
+},
+"S2D" :
+{
+"Description" : "Wind Speed 2D",
+"Enabled" : false,
+"Tagged" : true,
+"Tag String" : "S2",
+"Decimals" : 2,
+"Units" : 3
+},
+"D" :
+{
+"Description" : "Horiz Wind Direction",
+"Enabled" : true,
+"Tagged" : true,
+"Tag String" : "D",
+"Decimals" : 0,
+"Units" : 3
+},
+"DV" :
+{
+"Description" : "Vert Wind Direction",
+"Enabled" : true,
+"Tagged" : true,
+"Tag String" : "DV",
+"Decimals" : 0,
+"Units" : 3
+},
+"U" :
+{
+"Description" : "U Vector",
+"Enabled" : true,
+"Tagged" : true,
+"Tag String" : "U",
+"Decimals" : 2,
+"Units" : 3
+},
+"V" :
+{
+"Description" : "V Vector",
+"Enabled" : true,
+"Tagged" : true,
+"Tag String" : "V",
+"Decimals" : 2,
+"Units" : 3
+},
+"W" :
+{
+"Description" : "W Vector",
+"Enabled" : true,
+"Tagged" : true,
+"Tag String" : "W",
+"Decimals" : 2,
+"Units" : 3
+},
+"T" :
+{
+"Description" : "Temperature",
+"Enabled" : true,
+"Tagged" : false,
+"Tag String" : "T",
+"Decimals" : 2,
+"Units" : 3
+},
+"Cs" :
+{
+"Description" : "Speed of Sound",
+"Enabled" : false,
+"Tagged" : false,
+"Tag String" : "C",
+"Decimals" : 2,
+"Units" : 3
+},
+"RHTemp" :
+{
+"Description" : "RH Temp Sensor",
+"Enabled" : false,
+"Tagged" : true,
+"Tag String" : "RHST",
+"Decimals" : 2,
+"Units" : 3
+},
+"RH" :
+{
+"Description" : "RH Humidity Sensor",
+"Enabled" : false,
+"Tagged" : true,
+"Tag String" : "RHSH",
+"Decimals" : 2,
+"Units" : 3
+},
+"H" :
+{
+"Description" : "Humidity",
+"Enabled" : true,
+"Tagged" : true,
+"Tag String" : "H",
+"Decimals" : 2,
+"Units" : 3
+},
+"DP" :
+{
+"Description" : "DewPoint",
+"Enabled" : false,
+"Tagged" : false,
+"Tag String" : "DP",
+"Decimals" : 2,
+"Units" : 3
+},
+"PTemp" :
+{
+"Description" : "Pressure Temp Sensor",
+"Enabled" : false,
+"Tagged" : true,
+"Tag String" : "PST",
+"Decimals" : 2,
+"Units" : 3
+},
+"P" :
+{
+"Description" : "Pressure Sensor",
+"Enabled" : false,
+"Tagged" : false,
+"Tag String" : "P",
+"Decimals" : 2,
+"Units" : 3
+},
+"Density" :
+{
+"Description" : "Air Density",
+"Enabled" : false,
+"Tagged" : false,
+"Tag String" : "AD",
+"Decimals" : 2,
+"Units" : 3
+},
+"LevelX" :
+{
+"Description" : "Level X",
+"Enabled" : false,
+"Tagged" : true,
+"Tag String" : "AX",
+"Decimals" : 0,
+"Units" : 0
+},
+"LevelY" :
+{
+"Description" : "Level Y",
+"Enabled" : false,
+"Tagged" : true,
+"Tag String" : "AY",
+"Decimals" : 0,
+"Units" : 0
+},
+"LevelZ" :
+{
+"Description" : "Level Z",
+"Enabled" : false,
+"Tagged" : true,
+"Tag String" : "AZ",
+"Decimals" : 0,
+"Units" : 0
+},
+"Pitch" :
+{
+"Description" : "Pitch",
+"Enabled" : false,
+"Tagged" : false,
+"Tag String" : "PI",
+"Decimals" : 1,
+"Units" : 3
+},
+"Roll" :
+{
+"Description" : "Roll",
+"Enabled" : false,
+"Tagged" : false,
+"Tag String" : "RO",
+"Decimals" : 1,
+"Units" : 3
+},
+"CTemp" :
+{
+"Description" : "Compass Temp",
+"Enabled" : false,
+"Tagged" : true,
+"Tag String" : "MT",
+"Decimals" : 1,
+"Units" : 3
+},
+"MagX" :
+{
+"Description" : "Compass X",
+"Enabled" : false,
+"Tagged" : true,
+"Tag String" : "MX",
+"Decimals" : 0,
+"Units" : 0
+},
+"MagY" :
+{
+"Description" : "Compass Y",
+"Enabled" : false,
+"Tagged" : true,
+"Tag String" : "MY",
+"Decimals" : 0,
+"Units" : 0
+},
+"MagZ" :
+{
+"Description" : "Compass Z",
+"Enabled" : false,
+"Tagged" : true,
+"Tag String" : "MZ",
+"Decimals" : 0,
+"Units" : 0
+},
+"Heading" :
+{
+"Description" : "Compass Heading",
+"Enabled" : false,
+"Tagged" : false,
+"Tag String" : "MD",
+"Decimals" : 0,
+"Units" : 3
+},
+"TrueHead" :
+{
+"Description" : "True Heading",
+"Enabled" : false,
+"Tagged" : false,
+"Tag String" : "TD",
+"Decimals" : 0,
+"Units" : 3
+},
+"U1" :
+{
+"Description" : "U1 Vector",
+"Enabled" : false,
+"Tagged" : true,
+"Tag String" : "U1",
+"Decimals" : 2,
+"Units" : 3
+},
+"U2" :
+{
+"Description" : "U2 Vector",
+"Enabled" : false,
+"Tagged" : true,
+"Tag String" : "U2",
+"Decimals" : 2,
+"Units" : 3
+},
+"V1" :
+{
+"Description" : "V1 Vector",
+"Enabled" : false,
+"Tagged" : true,
+"Tag String" : "V1",
+"Decimals" : 2,
+"Units" : 3
+},
+"V2" :
+{
+"Description" : "V2 Vector",
